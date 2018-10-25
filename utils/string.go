@@ -7,14 +7,15 @@ import (
 	"time"
 )
 
+// GetZeroValueFromNull returns empty string if s == "NULL" if s != "NULL" returns s
 func GetZeroValueFromNull(s string) string {
-	if s != "NULL" {
+	if s == "NULL" {
 		return ""
-	} else {
-		return s
 	}
+	return s
 }
 
+// GetBoolFromString returns s as boolean equivalent
 func GetBoolFromString(s string) bool {
 	result, err := strconv.ParseBool(s)
 	if err != nil {
@@ -23,6 +24,7 @@ func GetBoolFromString(s string) bool {
 	return result
 }
 
+// GetFloat32FromString returns s to float32 equivalent
 func GetFloat32FromString(s string) float32 {
 	if s != "NULL" {
 		s = strings.Replace(s, ",", ".", 1)
@@ -35,6 +37,7 @@ func GetFloat32FromString(s string) float32 {
 	return 0
 }
 
+// GetTimeFromString returns s to Time equivalent using format "2006-01-02"
 func GetTimeFromString(s string) time.Time {
 	var result time.Time
 	if s != "NULL" {
