@@ -12,6 +12,7 @@ import (
 	"github.com/lib/pq"
 )
 
+// ReadCSV reads a CSV file and persist it on database
 func ReadCSV(file multipart.File) {
 	var db = createConnection()
 	var tx = createTx(db)
