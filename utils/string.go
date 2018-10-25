@@ -2,6 +2,7 @@ package utils
 
 import (
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -13,6 +14,15 @@ func GetZeroValueFromNull(s string) string {
 		return ""
 	}
 	return s
+}
+
+// RemoveNonAlphanumeric removes all non alphanumeric characters from string and return clean string
+func RemoveNonAlphanumeric(s string) string {
+	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return reg.ReplaceAllString(s, "")
 }
 
 // GetBoolFromString returns s as boolean equivalent

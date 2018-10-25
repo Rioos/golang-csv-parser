@@ -29,14 +29,29 @@ func ReadCSV(file multipart.File, w http.ResponseWriter) {
 			} else if err != nil {
 				log.Fatal(err)
 			}
-			if client.ValidateCPF() && client.ValidateLastPurchaseStore() && client.ValidateMostFrequentStore() {
-				stmt.Exec(client.CPF, client.LastPurchaseStore, client.MostFrequentStore, client.Private, client.Incomplete, client.LastPurchase, client.MediumPurchaseValue, client.LastPruchaseValue)
-			}
+			stmt.Exec(
+				client.CPF,
+				client.LastPurchaseStore,
+				client.MostFrequentStore,
+				client.Private,
+				client.Incomplete,
+				client.LastPurchase,
+				client.MediumPurchaseValue,
+				client.LastPruchaseValue,
+				client.HasValidCPF,
+				client.HasValidLastPurchaseStore,
+				client.HasValidMostFrequentStore)
 		}
 		lineCount++
 	}
 	_, err := stmt.Exec()
+	if err != nil {
+		log.Fatal(err)
+	}
 	err = stmt.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 	err = tx.Commit()
 	if err != nil {
 		log.Fatal(err)
@@ -78,19 +93,35 @@ func readNextLine(r *csv.Reader) (models.Client, error) {
 		log.Fatal(err)
 	}
 	client := models.Client{
-		CPF:                 utils.GetZeroValueFromNull(values[0]),
+		CPF:                 utils.RemoveNonAlphanumeric(utils.GetZeroValueFromNull(values[0])),
 		Private:             utils.GetBoolFromString(values[1]),
 		Incomplete:          utils.GetBoolFromString(values[2]),
 		LastPurchase:        utils.GetTimeFromString(values[3]),
 		MediumPurchaseValue: utils.GetFloat32FromString(values[4]),
 		LastPruchaseValue:   utils.GetFloat32FromString(values[5]),
-		MostFrequentStore:   utils.GetZeroValueFromNull(values[6]),
-		LastPurchaseStore:   utils.GetZeroValueFromNull(values[7])}
+		MostFrequentStore:   utils.RemoveNonAlphanumeric(utils.GetZeroValueFromNull(values[6])),
+		LastPurchaseStore:   utils.RemoveNonAlphanumeric(utils.GetZeroValueFromNull(values[7]))}
+	client.HasValidCPF = client.ValidateCPF()
+	client.HasValidLastPurchaseStore = client.ValidateLastPurchaseStore()
+	client.HasValidMostFrequentStore = client.ValidateMostFrequentStore()
 	return client, nil
 }
 
 func startCopyStmt(tx *sql.Tx) *sql.Stmt {
-	stmt, err := tx.Prepare(pq.CopyIn("clients", "cpf", "last_purchase_store", "most_frequent_store", "private", "incomplete", "last_purchase", "medium_purchase_value", "last_pruchase_value"))
+	stmt, err := tx.Prepare(
+		pq.CopyIn(
+			"clients",
+			"cpf",
+			"last_purchase_store",
+			"most_frequent_store",
+			"private",
+			"incomplete",
+			"last_purchase",
+			"medium_purchase_value",
+			"last_pruchase_value",
+			"has_valid_cpf",
+			"has_valid_last_purchase_store",
+			"has_valid_most_frequent_store"))
 	if err != nil {
 		log.Fatal(err)
 	}
