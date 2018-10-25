@@ -3,7 +3,6 @@ package services
 import (
 	"database/sql"
 	"encoding/csv"
-	"fmt"
 	"golang-csv-parser/models"
 	"golang-csv-parser/utils"
 	"io"
@@ -76,7 +75,6 @@ func readNextLine(r *csv.Reader) (models.Client, error) {
 		LastPruchaseValue:   utils.GetFloat32FromString(values[5]),
 		MostFrequentStore:   utils.GetZeroValueFromNull(values[6]),
 		LastPurchaseStore:   utils.GetZeroValueFromNull(values[7])}
-	fmt.Println(client)
 	return client, nil
 }
 
