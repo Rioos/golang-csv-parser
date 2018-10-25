@@ -1,7 +1,7 @@
 version: '3'
 services:
   db:
-    image: postgres
+    image: postgres:10.5
     environment:
       POSTGRES_DB: csv_neoway
       POSTGRES_USER: postgres
@@ -10,7 +10,7 @@ services:
       - 5432:5432
   app:
     build: .
-    command: ["go", "run", "main.go"]
+    command: ["./wait-for-it.sh", "db:5432", "--", "go", "run", "main.go"]
     volumes:
       - .:/go/src/app
     ports:

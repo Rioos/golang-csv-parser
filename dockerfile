@@ -1,8 +1,8 @@
 FROM golang:1.11
 
-RUN mkdir -p /go/src/app
-WORKDIR /go/src/app
+RUN mkdir -p /go/src/golang-csv-parser
+WORKDIR /go/src/golang-csv-parser
 
-ADD . /go/src/app
+ADD . /go/src/golang-csv-parser
 
 RUN go get -v
