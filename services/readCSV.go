@@ -41,6 +41,7 @@ func createReader(file multipart.File) *csv.Reader {
 	csvReader := csv.NewReader(file)
 	csvReader.Comma = ' '
 	csvReader.TrimLeadingSpace = true
+	csvReader.ReuseRecord = true
 	return csvReader
 }
 
