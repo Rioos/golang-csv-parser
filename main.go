@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"database/sql"
 	"encoding/csv"
+	"fmt"
 	"golang-csv-parser/client"
 	"io"
 	"log"
@@ -18,17 +19,27 @@ import (
 func main() {
 	start := time.Now()
 	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres dbname=csv_neoway sslmode=disable password=postgres")
+	if err != nil {
+		log.Fatal(err)
+	}
 	txn, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
 	stmt, err := txn.Prepare(pq.CopyIn("clients", "cpf", "last_purchase_store", "most_frequent_store", "private", "incomplete", "last_purchase", "medium_purchase_value", "last_pruchase_value"))
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	csvFile, _ := os.Open("base_teste.txt")
+	csvFile, err := os.Open("base_teste.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
 	csvReader := csv.NewReader(bufio.NewReader(csvFile))
 	csvReader.Comma = ' '
 	csvReader.TrimLeadingSpace = true
+	var count = 0
 
 	for {
 		values, err := csvReader.Read()
@@ -38,7 +49,13 @@ func main() {
 			log.Fatal(err)
 		}
 		private, err := strconv.ParseBool(values[1])
+		if err != nil {
+			log.Fatal(err)
+		}
 		incomplete, err := strconv.ParseBool(values[2])
+		if err != nil {
+			log.Fatal(err)
+		}
 		var mediumPurchaseValue float32
 		var lastPruchaseValue float32
 		var lastPurchase time.Time
@@ -80,11 +97,14 @@ func main() {
 			LastPruchaseValue:   lastPruchaseValue32,
 			MostFrequentStore:   values[6],
 			LastPurchaseStore:   values[7]}
-		_, err = stmt.Exec(client.CPF, client.LastPurchaseStore, client.MostFrequentStore, client.Private, client.Incomplete, client.LastPurchase, client.MediumPurchaseValue, client.LastPruchaseValue)
-		// if client.ValidateCPF() != true || client.ValidateLastPurchaseStore() || client.ValidateMostFrequentStore() {
-		// 	fmt.Println(client.CPF)
-		// }
+		if client.ValidateCPF() && client.ValidateLastPurchaseStore() && client.ValidateMostFrequentStore() {
+			_, err = stmt.Exec(client.CPF, client.LastPurchaseStore, client.MostFrequentStore, client.Private, client.Incomplete, client.LastPurchase, client.MediumPurchaseValue, client.LastPruchaseValue)
+		} else {
+			count++
+		}
 	}
+
+	fmt.Println(count)
 	_, err = stmt.Exec()
 	if err != nil {
 		log.Fatal(err)
