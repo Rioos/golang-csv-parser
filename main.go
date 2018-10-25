@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	db, err := gorm.Open("postgres", "host=localhost sslmode=disable  port=5432 user=postgres dbname=csv_neoway password=postgres")
+	db, err := gorm.Open("postgres", "host=db sslmode=disable user=postgres dbname=csv_neoway password=postgres")
 	if err != nil {
 		log.Fatalln(err)
 	}

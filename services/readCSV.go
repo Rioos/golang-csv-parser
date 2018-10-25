@@ -20,28 +20,30 @@ func ReadCSV(file multipart.File, w http.ResponseWriter) {
 	var tx = createTx(db)
 	var stmt = startCopyStmt(tx)
 	var csvReader = createReader(file)
-	var lineCount int
+	var lineCount = 0
 	for {
-		if lineCount > 0 {
-			client, err := readNextLine(csvReader)
-			if err == io.EOF {
-				break
-			} else if err != nil {
-				log.Fatal(err)
-			}
-			stmt.Exec(
-				client.CPF,
-				client.LastPurchaseStore,
-				client.MostFrequentStore,
-				client.Private,
-				client.Incomplete,
-				client.LastPurchase,
-				client.MediumPurchaseValue,
-				client.LastPruchaseValue,
-				client.HasValidCPF,
-				client.HasValidLastPurchaseStore,
-				client.HasValidMostFrequentStore)
+		if lineCount == 0 {
+			csvReader.Read()
+			csvReader.FieldsPerRecord = 8
 		}
+		client, err := readNextLine(csvReader)
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Fatal(err)
+		}
+		stmt.Exec(
+			client.CPF,
+			client.LastPurchaseStore,
+			client.MostFrequentStore,
+			client.Private,
+			client.Incomplete,
+			client.LastPurchase,
+			client.MediumPurchaseValue,
+			client.LastPruchaseValue,
+			client.HasValidCPF,
+			client.HasValidLastPurchaseStore,
+			client.HasValidMostFrequentStore)
 		lineCount++
 	}
 	_, err := stmt.Exec()
@@ -70,7 +72,7 @@ func createReader(file multipart.File) *csv.Reader {
 }
 
 func createConnection() *sql.DB {
-	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres dbname=csv_neoway sslmode=disable password=postgres")
+	db, err := sql.Open("postgres", "host=db user=postgres dbname=csv_neoway sslmode=disable password=postgres")
 	if err != nil {
 		log.Fatal(err)
 	}
