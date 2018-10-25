@@ -19,15 +19,17 @@ func HandleRequestCSV(w http.ResponseWriter, r *http.Request) {
 
 	file, handle, err := r.FormFile("file")
 	if err != nil {
-		fmt.Fprintf(w, "%v", "Couldn't find file. Did you sent it as a form-data and on 'file' field?")
+		fmt.Fprint(w, "Couldn't find file. Did you sent it as a form-data and on 'file' field?")
 		return
 	}
 	defer file.Close()
 
 	mimeType := handle.Header.Get("Content-Type")
-	if mimeType == "text/plain" || mimeType == "text/csv" {
+	switch mimeType {
+	case "text/plain", "text/csv":
 		services.ReadCSV(file, w)
-	} else {
+		break
+	default:
 		jsonResponse(w, http.StatusBadRequest, "The file mime type is not valid. Accept only plain text or CSV")
 	}
 
