@@ -7,14 +7,14 @@ import (
 )
 
 type Client struct {
-	CPF                 string `gorm:"size:255;index"`
-	LastPurchaseStore   string `gorm:"size:255;index"`
-	MostFrequentStore   string `gorm:"size:255;index"`
+	CPF                 string
+	LastPurchaseStore   string
+	MostFrequentStore   string
 	Private             bool
 	Incomplete          bool
 	LastPurchase        time.Time
-	MediumPurchaseValue float32 `gorm:"index"`
-	LastPruchaseValue   float32 `gorm:"index"`
+	MediumPurchaseValue float32
+	LastPruchaseValue   float32
 }
 
 func (c Client) ValidateCPF() bool {
