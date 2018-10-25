@@ -18,13 +18,20 @@ type Client struct {
 }
 
 func (c Client) ValidateCPF() bool {
-	return brdoc.IsCPF(c.CPF)
+	return trueIfNull(c.CPF) || brdoc.IsCPF(c.CPF)
 }
 
 func (c Client) ValidateLastPurchaseStore() bool {
-	return brdoc.IsCNPJ(c.LastPurchaseStore)
+	return trueIfNull(c.LastPurchaseStore) || brdoc.IsCNPJ(c.LastPurchaseStore)
 }
 
 func (c Client) ValidateMostFrequentStore() bool {
-	return brdoc.IsCNPJ(c.MostFrequentStore)
+	return trueIfNull(c.MostFrequentStore) || brdoc.IsCNPJ(c.MostFrequentStore)
+}
+
+func trueIfNull(s string) bool {
+	if s == "NULL" {
+		return true
+	}
+	return false
 }
