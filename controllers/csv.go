@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// HandleRequestCSV handles request to '/csv' route
 func HandleRequestCSV(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	if r.Method != http.MethodPost {
@@ -24,20 +25,12 @@ func HandleRequestCSV(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	mimeType := handle.Header.Get("Content-Type")
-	switch mimeType {
-	case "text/plain":
-		services.ReadCSV(file)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		return
-	case "text/csv":
-		services.ReadCSV(file)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		return
-	default:
-		jsonResponse(w, http.StatusBadRequest, "The format file is not valid.")
+	if mimeType == "text/plain" || mimeType == "text/csv" {
+		services.ReadCSV(file, w)
+	} else {
+		jsonResponse(w, http.StatusBadRequest, "The file mime type is not valid. Accept only plain text or CSV")
 	}
+
 	elapsed := time.Since(start)
 	log.Printf("Request took %s", elapsed)
 }

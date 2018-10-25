@@ -3,31 +3,37 @@ package services
 import (
 	"database/sql"
 	"encoding/csv"
+	"fmt"
 	"golang-csv-parser/models"
 	"golang-csv-parser/utils"
 	"io"
 	"log"
 	"mime/multipart"
+	"net/http"
 
 	"github.com/lib/pq"
 )
 
-// ReadCSV reads a CSV file and persist it on database
-func ReadCSV(file multipart.File) {
+// ReadCSV reads a CSV file and persist it on database returns number of lines read
+func ReadCSV(file multipart.File, w http.ResponseWriter) {
 	var db = createConnection()
 	var tx = createTx(db)
 	var stmt = startCopyStmt(tx)
 	var csvReader = createReader(file)
+	var lineCount int
 	for {
-		client, err := readNextLine(csvReader)
-		if err == io.EOF {
-			break
-		} else if err != nil {
-			log.Fatal(err)
+		if lineCount > 0 {
+			client, err := readNextLine(csvReader)
+			if err == io.EOF {
+				break
+			} else if err != nil {
+				log.Fatal(err)
+			}
+			if client.ValidateCPF() && client.ValidateLastPurchaseStore() && client.ValidateMostFrequentStore() {
+				stmt.Exec(client.CPF, client.LastPurchaseStore, client.MostFrequentStore, client.Private, client.Incomplete, client.LastPurchase, client.MediumPurchaseValue, client.LastPruchaseValue)
+			}
 		}
-		if client.ValidateCPF() && client.ValidateLastPurchaseStore() && client.ValidateMostFrequentStore() {
-			stmt.Exec(client.CPF, client.LastPurchaseStore, client.MostFrequentStore, client.Private, client.Incomplete, client.LastPurchase, client.MediumPurchaseValue, client.LastPruchaseValue)
-		}
+		lineCount++
 	}
 	_, err := stmt.Exec()
 	err = stmt.Close()
@@ -35,6 +41,9 @@ func ReadCSV(file multipart.File) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "%v %v", "Read a total of", lineCount)
 }
 
 func createReader(file multipart.File) *csv.Reader {
