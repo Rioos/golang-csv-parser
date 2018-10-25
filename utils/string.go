@@ -7,6 +7,14 @@ import (
 	"time"
 )
 
+func GetZeroValueFromNull(s string) string {
+	if s != "NULL" {
+		return ""
+	} else {
+		return s
+	}
+}
+
 func GetBoolFromString(s string) bool {
 	result, err := strconv.ParseBool(s)
 	if err != nil {

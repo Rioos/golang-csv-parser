@@ -18,19 +18,19 @@ type Client struct {
 }
 
 func (c Client) ValidateCPF() bool {
-	return trueIfNull(c.CPF) || brdoc.IsCPF(c.CPF)
+	return trueIfZeroValue(c.CPF) || brdoc.IsCPF(c.CPF)
 }
 
 func (c Client) ValidateLastPurchaseStore() bool {
-	return trueIfNull(c.LastPurchaseStore) || brdoc.IsCNPJ(c.LastPurchaseStore)
+	return trueIfZeroValue(c.LastPurchaseStore) || brdoc.IsCNPJ(c.LastPurchaseStore)
 }
 
 func (c Client) ValidateMostFrequentStore() bool {
-	return trueIfNull(c.MostFrequentStore) || brdoc.IsCNPJ(c.MostFrequentStore)
+	return trueIfZeroValue(c.MostFrequentStore) || brdoc.IsCNPJ(c.MostFrequentStore)
 }
 
-func trueIfNull(s string) bool {
-	if s == "NULL" {
+func trueIfZeroValue(s string) bool {
+	if s == "" {
 		return true
 	}
 	return false

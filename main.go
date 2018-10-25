@@ -67,20 +67,15 @@ func readNextLine(r *csv.Reader) (models.Client, error) {
 	} else if err != nil {
 		log.Fatal(err)
 	}
-	var private = utils.GetBoolFromString(values[1])
-	var incomplete = utils.GetBoolFromString(values[2])
-	var lastPurchase = utils.GetTimeFromString(values[3])
-	var mediumPurchaseValue = utils.GetFloat32FromString(values[4])
-	var lastPruchaseValue = utils.GetFloat32FromString(values[5])
 	client := models.Client{
-		CPF:                 values[0],
-		Private:             private,
-		Incomplete:          incomplete,
-		LastPurchase:        lastPurchase,
-		MediumPurchaseValue: mediumPurchaseValue,
-		LastPruchaseValue:   lastPruchaseValue,
-		MostFrequentStore:   values[6],
-		LastPurchaseStore:   values[7]}
+		CPF:                 utils.GetZeroValueFromNull(values[0]),
+		Private:             utils.GetBoolFromString(values[1]),
+		Incomplete:          utils.GetBoolFromString(values[2]),
+		LastPurchase:        utils.GetTimeFromString(values[3]),
+		MediumPurchaseValue: utils.GetFloat32FromString(values[4]),
+		LastPruchaseValue:   utils.GetFloat32FromString(values[5]),
+		MostFrequentStore:   utils.GetZeroValueFromNull(values[6]),
+		LastPurchaseStore:   utils.GetZeroValueFromNull(values[7])}
 	fmt.Println(client)
 	return client, nil
 }
