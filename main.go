@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"encoding/csv"
+	"golang-csv-parser/client"
 	"io"
 	"log"
 	"os"
@@ -10,32 +12,19 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/lib/pq"
 )
-
-/*
-  Client - A client that the database consume
-*/
-type Client struct {
-	CPF                 string `gorm:"size:255;index"`
-	LastPurchaseStore   string `gorm:"size:255;index"`
-	MostFrequentStore   string `gorm:"size:255;index"`
-	Private             bool
-	Incomplete          bool
-	LastPurchase        time.Time
-	MediumPurchaseValue float32 `gorm:"index"`
-	LastPruchaseValue   float32 `gorm:"index"`
-}
 
 func main() {
 	start := time.Now()
-	db, err := gorm.Open("postgres", "host=localhost port=5432 user=postgres dbname=csv_neoway sslmode=disable password=postgres")
+	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres dbname=csv_neoway sslmode=disable password=postgres")
+	txn, err := db.Begin()
+	stmt, err := txn.Prepare(pq.CopyIn("clients", "cpf", "last_purchase_store", "most_frequent_store", "private", "incomplete", "last_purchase", "medium_purchase_value", "last_pruchase_value"))
+
 	if err != nil {
 		log.Fatal(err)
 	}
-	db.CreateTable(&Client{})
-	defer db.Close()
+
 	csvFile, _ := os.Open("base_teste.txt")
 	csvReader := csv.NewReader(bufio.NewReader(csvFile))
 	csvReader.Comma = ' '
@@ -82,7 +71,7 @@ func main() {
 
 		var lastPruchaseValue32 = float32(lastPruchaseValue)
 		var mediumPurchaseValue32 = float32(mediumPurchaseValue)
-		client := Client{
+		client := client.Client{
 			CPF:                 values[0],
 			Private:             private,
 			Incomplete:          incomplete,
@@ -91,30 +80,47 @@ func main() {
 			LastPruchaseValue:   lastPruchaseValue32,
 			MostFrequentStore:   values[6],
 			LastPurchaseStore:   values[7]}
-		db.Create(&client)
+		_, err = stmt.Exec(client.CPF, client.LastPurchaseStore, client.MostFrequentStore, client.Private, client.Incomplete, client.LastPurchase, client.MediumPurchaseValue, client.LastPruchaseValue)
+		// if client.ValidateCPF() != true || client.ValidateLastPurchaseStore() || client.ValidateMostFrequentStore() {
+		// 	fmt.Println(client.CPF)
+		// }
+	}
+	_, err = stmt.Exec()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = stmt.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = txn.Commit()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	elapsed := time.Since(start)
 	log.Printf("Binomial took %s", elapsed)
 }
 
-func usingReadAll() {
-	start := time.Now()
-	db, err := gorm.Open("postgres", "host=localhost port=5432 user=postgres dbname=csv_neoway sslmode=disable password=postgres")
-	if err != nil {
-		log.Fatal(err)
-	}
-	db.CreateTable(&Client{})
-	defer db.Close()
-	csvFile, _ := os.Open("base_teste.txt")
-	csvReader := csv.NewReader(bufio.NewReader(csvFile))
-	csvReader.Comma = ' '
-	csvReader.TrimLeadingSpace = true
-	values, err := csvReader.ReadAll()
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println(values)
-	elapsed := time.Since(start)
-	log.Printf("Binomial took %s", elapsed)
-}
+// func usingReadAll() {
+// 	start := time.Now()
+// 	db, err := gorm.Open("postgres", "host=localhost port=5432 user=postgres dbname=csv_neoway sslmode=disable password=postgres")
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	db.CreateTable(&Client{})
+// 	defer db.Close()
+// 	csvFile, _ := os.Open("base_teste.txt")
+// 	csvReader := csv.NewReader(bufio.NewReader(csvFile))
+// 	csvReader.Comma = ' '
+// 	csvReader.TrimLeadingSpace = true
+// 	values, err := csvReader.ReadAll()
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	log.Println(values)
+// 	elapsed := time.Since(start)
+// 	log.Printf("Binomial took %s", elapsed)
+// }
