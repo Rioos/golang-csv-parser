@@ -4,8 +4,7 @@ import (
 	"bufio"
 	"database/sql"
 	"encoding/csv"
-	"fmt"
-	"golang-csv-parser/client"
+	"golang-csv-parser/models"
 	"io"
 	"log"
 	"os"
@@ -18,93 +17,27 @@ import (
 
 func main() {
 	start := time.Now()
-	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres dbname=csv_neoway sslmode=disable password=postgres")
-	if err != nil {
-		log.Fatal(err)
-	}
-	txn, err := db.Begin()
-	if err != nil {
-		log.Fatal(err)
-	}
+	var txn = createTxn()
+
 	stmt, err := txn.Prepare(pq.CopyIn("clients", "cpf", "last_purchase_store", "most_frequent_store", "private", "incomplete", "last_purchase", "medium_purchase_value", "last_pruchase_value"))
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	csvFile, err := os.Open("base_teste.txt")
-	if err != nil {
-		log.Fatal(err)
-	}
-	csvReader := csv.NewReader(bufio.NewReader(csvFile))
-	csvReader.Comma = ' '
-	csvReader.TrimLeadingSpace = true
-	var count = 0
+	var csvReader = createReader()
 
 	for {
-		values, err := csvReader.Read()
+		client, err := readNextLine(csvReader)
 		if err == io.EOF {
 			break
 		} else if err != nil {
 			log.Fatal(err)
 		}
-		private, err := strconv.ParseBool(values[1])
-		if err != nil {
-			log.Fatal(err)
-		}
-		incomplete, err := strconv.ParseBool(values[2])
-		if err != nil {
-			log.Fatal(err)
-		}
-		var mediumPurchaseValue float32
-		var lastPruchaseValue float32
-		var lastPurchase time.Time
-
-		if values[3] != "NULL" {
-			_lastPurchase, err := time.Parse("2006-01-02", values[3])
-			if err != nil {
-				log.Fatal(err)
-			}
-			lastPurchase = _lastPurchase
-		}
-
-		if values[4] != "NULL" {
-			values[4] = strings.Replace(values[4], ",", ".", 1)
-			_mediumPurchaseValue, err := strconv.ParseFloat(values[4], 32)
-			if err != nil {
-				log.Fatal(err)
-			}
-			mediumPurchaseValue = float32(_mediumPurchaseValue)
-		}
-
-		if values[5] != "NULL" {
-			values[5] = strings.Replace(values[5], ",", ".", 1)
-			_lastPruchaseValue, err := strconv.ParseFloat(values[5], 32)
-			if err != nil {
-				log.Fatal(err)
-			}
-			lastPruchaseValue = float32(_lastPruchaseValue)
-		}
-
-		var lastPruchaseValue32 = float32(lastPruchaseValue)
-		var mediumPurchaseValue32 = float32(mediumPurchaseValue)
-		client := client.Client{
-			CPF:                 values[0],
-			Private:             private,
-			Incomplete:          incomplete,
-			LastPurchase:        lastPurchase,
-			MediumPurchaseValue: mediumPurchaseValue32,
-			LastPruchaseValue:   lastPruchaseValue32,
-			MostFrequentStore:   values[6],
-			LastPurchaseStore:   values[7]}
 		if client.ValidateCPF() && client.ValidateLastPurchaseStore() && client.ValidateMostFrequentStore() {
-			_, err = stmt.Exec(client.CPF, client.LastPurchaseStore, client.MostFrequentStore, client.Private, client.Incomplete, client.LastPurchase, client.MediumPurchaseValue, client.LastPruchaseValue)
-		} else {
-			count++
+			stmt.Exec(client.CPF, client.LastPurchaseStore, client.MostFrequentStore, client.Private, client.Incomplete, client.LastPurchase, client.MediumPurchaseValue, client.LastPruchaseValue)
 		}
 	}
 
-	fmt.Println(count)
 	_, err = stmt.Exec()
 	if err != nil {
 		log.Fatal(err)
@@ -122,6 +55,85 @@ func main() {
 
 	elapsed := time.Since(start)
 	log.Printf("Binomial took %s", elapsed)
+}
+
+func createReader() *csv.Reader {
+	csvFile, err := os.Open("base_teste.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	csvReader := csv.NewReader(bufio.NewReader(csvFile))
+	csvReader.Comma = ' '
+	csvReader.TrimLeadingSpace = true
+	return csvReader
+}
+
+func createTxn() *sql.Tx {
+	db, err := sql.Open("postgres", "host=localhost port=5432 user=postgres dbname=csv_neoway sslmode=disable password=postgres")
+	if err != nil {
+		log.Fatal(err)
+	}
+	txn, err := db.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return txn
+}
+
+func readNextLine(r *csv.Reader) (models.Client, error) {
+	values, err := r.Read()
+	if err == io.EOF {
+		return models.Client{}, err
+	} else if err != nil {
+		log.Fatal(err)
+	}
+	var private = getBoolFromString(values[1])
+	var incomplete = getBoolFromString(values[2])
+	var lastPurchase = getTimeFromString(values[3])
+	var mediumPurchaseValue = getFloat32FromString(values[4])
+	var lastPruchaseValue = getFloat32FromString(values[5])
+	client := models.Client{
+		CPF:                 values[0],
+		Private:             private,
+		Incomplete:          incomplete,
+		LastPurchase:        lastPurchase,
+		MediumPurchaseValue: mediumPurchaseValue,
+		LastPruchaseValue:   lastPruchaseValue,
+		MostFrequentStore:   values[6],
+		LastPurchaseStore:   values[7]}
+	return client, nil
+}
+
+func getBoolFromString(s string) bool {
+	result, err := strconv.ParseBool(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return result
+}
+
+func getFloat32FromString(s string) float32 {
+	if s != "NULL" {
+		s = strings.Replace(s, ",", ".", 1)
+		result, err := strconv.ParseFloat(s, 32)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return float32(result)
+	}
+	return 0
+}
+
+func getTimeFromString(s string) time.Time {
+	var result time.Time
+	if s != "NULL" {
+		_lastPurchase, err := time.Parse("2006-01-02", s)
+		if err != nil {
+			log.Fatal(err)
+		}
+		result = _lastPurchase
+	}
+	return result
 }
 
 // func usingReadAll() {
