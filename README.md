@@ -22,7 +22,9 @@ cd golang-csv-parser
 
 2 - (Optional) You can setup your prefered .env configuration modifying .env
 
-3 - Run docker-compose
+3 - Make sure nothing is running on port 5432 or 80
+
+4 - Run docker-compose
 ```
 docker-compose up -d
 ```
