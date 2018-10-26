@@ -20,7 +20,7 @@ git clone git@github.com:Rioos/golang-csv-parser.git
 cd golang-csv-parser
 ```
 
-2 - (Optional) You can setup your prefered .env configuration modifying .env
+2 - (Optional) You can setup your prefered environment configuration modifying .env
 
 3 - Make sure nothing is running on port 5432 or 80
 
