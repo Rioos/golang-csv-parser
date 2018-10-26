@@ -1,13 +1,13 @@
 CREATE OR REPLACE TABLE clients
 (
-  cpf                   VARCHAR(20) `gorm:"type:varchar(20);index"`,
-  last_purchase_store   VARCHAR(20) `gorm:"type:varchar(20);index"`,
-  most_frequent_store   VARCHAR(20) `gorm:"type:varchar(20);index"`,
+  cpf                   VARCHAR(20),
+  last_purchase_store   VARCHAR(20),
+  most_frequent_store   VARCHAR(20),
   private               BOOLEAN,
   incomplete            BOOLEAN,
-  last_purchase         TIMESTAMP WITH TIME ZONE `gorm:"index"`,
-  medium_purchase_value NUMERIC `gorm:"index"`,
-  last_pruchase_value   NUMERIC `gorm:"index"`
+  last_purchase         TIMESTAMP WITH TIME ZONE,
+  medium_purchase_value NUMERIC,
+  last_pruchase_value   NUMERIC
 );
 
 CREATE OR REPLACE INDEX idx_clients_cpf
