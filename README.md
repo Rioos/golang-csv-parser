@@ -5,7 +5,7 @@ A fast and simple parser written in Go for Neoway CSV files.
 ## Features
 
 - [x] Dockerized service
-- [x] Saves on a Postgres Database
+- [x] Saves the CSV on a Postgres Database
 - [x] Faster than ~~lightspeed~~ a bullet
 
 ## What do you need
