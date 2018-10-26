@@ -40,3 +40,6 @@ docker-compose up -d
 - You can send a request through Postman just like that
 
 ![Postman example](https://i.imgur.com/gmJJjHv.png)
+
+## Author
+Ricardo Carvalho Maisonnave
