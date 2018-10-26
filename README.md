@@ -34,8 +34,8 @@ docker-compose up -d
 ## How to use
 
 - Service will listen on port 80 and wait for a CSV/TXT file on the route '/csv' (must be form-data and must have the file as "file" input name)
-- Database Server will listen on port 5432 and has set postgres/postgres as username/password
-- Database name is neoway_csv 
+- Database Server will listen on port 5432 and has set postgres/postgres as username/password by default
+- Database name is neoway_csv by default
 
 - You can send a request through Postman just like that
 
