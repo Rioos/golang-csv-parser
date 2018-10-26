@@ -37,6 +37,6 @@ docker-compose up -d
 - Database Server will listen on port 5432 and has set postgres/postgres as username/password
 - Database name is neoway_csv 
 
-- You can send a request thorugh Postman just like that
+- You can send a request through Postman just like that
 
 ![Postman example](https://i.imgur.com/gmJJjHv.png)
