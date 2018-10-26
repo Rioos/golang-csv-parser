@@ -31,7 +31,9 @@ func ReadCSV(file multipart.File, w http.ResponseWriter) {
 		if err == io.EOF {
 			break
 		} else if err != nil {
-			log.Fatal(err)
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, "Wrong format. Couldn't parse the file")
+			return
 		}
 		stmt.Exec(
 			client.CPF,
@@ -59,9 +61,8 @@ func ReadCSV(file multipart.File, w http.ResponseWriter) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "%v %v", "Read a total of", lineCount)
+	fmt.Fprintf(w, "%s %d", "Read a total of", lineCount)
 }
 
 func createReader(file multipart.File) *csv.Reader {
@@ -98,7 +99,7 @@ func readNextLine(r *csv.Reader) (models.Client, error) {
 	if err == io.EOF {
 		return models.Client{}, err
 	} else if err != nil {
-		log.Fatal(err)
+		return models.Client{}, err
 	}
 	client := models.Client{
 		CPF:                 utils.RemoveNonAlphanumeric(utils.GetZeroValueFromNull(values[0])),
