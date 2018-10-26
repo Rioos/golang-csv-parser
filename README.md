@@ -10,14 +10,24 @@ A fast and simple parser written in Go for Neoway CSV files.
 
 ## What do you need
 
-- [x] Docker and Docker-Compose
+- [x] Docker and Docker-Compose [(install here)](https://docs.docker.com/install/)
 
 ## How to run
 
+1 - Download the project
 ```
 git clone git@github.com:Rioos/golang-csv-parser.git
+cd golang-csv-parser
+```
+
+2 - (Optional) You can setup your prefered .env configuration modifying .env
+
+3 - Run docker-compose
+```
 docker-compose up -d
 ```
+
+
 
 ## How to use
 
