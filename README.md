@@ -15,6 +15,7 @@ A fast and simple parser written in Go for Neoway CSV files.
 ## How to run
 
 ```
+git@github.com:Rioos/golang-csv-parser.git
 docker-compose up -d
 ```
 
